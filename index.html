@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDV-WD — Sistema de Gestão para Restauração</title>
+<style>
+:root{--bg:#0f1420;--panel:#1a2333;--panel2:#222d42;--accent:#ff8c1a;--accent2:#22c55e;--red:#ef4444;--blue:#3b82f6;--purple:#a855f7;--yellow:#eab308;--txt:#e6eaf2;--muted:#8a94a8;--border:#2e3a52;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;}
+body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;}
+header{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--panel);border-bottom:2px solid var(--accent);flex-wrap:wrap;}
+header h1{font-size:20px;color:var(--accent);letter-spacing:1px;}
+header .userinfo{font-size:12px;color:var(--muted);}
+#btn-logout{margin-left:8px;background:var(--red);border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;}
+#btn-switch{margin-left:8px;background:var(--blue);border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;}
+header nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+header nav button{background:var(--panel2);color:var(--txt);border:1px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
+header nav button.active{background:var(--accent);color:#111;border-color:var(--accent);font-weight:700;}
+main{flex:1;padding:20px;overflow:auto;}
+.view{display:none;}
+.view.on{display:block;}
+h2.sec-title{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin:16px 0 6px;}
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;}
+.login-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:32px;width:370px;text-align:center;}
+.login-box h1{color:var(--accent);margin-bottom:6px;}
+.login-box p{font-size:12px;color:var(--muted);margin-bottom:16px;}
+.login-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.login-tabs button{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--muted);cursor:pointer;font-size:13px;}
+.login-tabs button.active{background:var(--accent);color:#111;font-weight:700;border-color:var(--accent);}
+.login-box label{display:block;text-align:left;font-size:12px;color:var(--muted);margin:10px 0 4px;}
+.login-box input,.login-box select{width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--txt);}
+.pin-input{text-align:center;font-size:20px;letter-spacing:8px !important;}
+.login-box button.enter{width:100%;margin-top:16px;padding:12px;background:var(--accent);border:none;border-radius:8px;font-weight:800;font-size:15px;cursor:pointer;color:#111;}
+.login-box .btn-voltar{background:var(--panel2);color:var(--txt);border:1px solid var(--border);}
+.login-err{color:var(--red);font-size:12px;margin-top:10px;min-height:16px;}
+.login-hint{margin-top:14px;font-size:11px;color:var(--muted);text-align:left;background:var(--panel2);padding:10px;border-radius:8px;line-height:1.6;}
+#zonas{display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+#zonas button{background:var(--panel2);border:1px solid var(--border);color:var(--txt);padding:8px 18px;border-radius:20px;cursor:pointer;font-size:13px;}
+#zonas button.active{background:var(--accent);color:#111;font-weight:700;}
+#mesas{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-top:15px;}
+.mesa{background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:18px 10px;text-align:center;cursor:pointer;transition:.15s;}
+.mesa:hover{border-color:var(--accent);transform:translateY(-2px);}
+.mesa .num{font-size:22px;font-weight:800;}
+.mesa .status{font-size:12px;color:var(--muted);margin-top:6px;}
+.mesa.ocupada{border-color:var(--accent2);}
+.mesa.ocupada .status{color:var(--accent2);}
+.pedido-wrap{display:grid;grid-template-columns:1fr 380px;gap:20px;}
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin-top:12px;}
+.prod{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;transition:.12s;position:relative;}
+.prod:hover{border-color:var(--accent);background:#2a3650;}
+.prod.esgotado{opacity:.45;cursor:not-allowed;}
+.prod .nome{font-size:13px;min-height:32px;}
+.prod .preco{color:var(--accent);font-weight:700;margin-top:6px;}
+.prod .promo{color:var(--red);font-size:11px;}
+.prod .stock{position:absolute;top:6px;right:8px;font-size:10px;color:var(--muted);}
+.cart{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;height:fit-content;position:sticky;top:0;}
+.cart-item{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.cart-item .qtd{display:flex;align-items:center;gap:6px;}
+.cart-item button{background:var(--panel2);border:1px solid var(--border);color:var(--txt);width:22px;height:22px;border-radius:6px;cursor:pointer;}
+.total{font-size:20px;font-weight:800;text-align:right;margin:12px 0;color:var(--accent);}
+.btn{padding:10px 16px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;}
+.btn-green{background:var(--accent2);color:#06230f;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-orange{background:var(--accent);color:#111;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-block{width:100%;margin-top:8px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.toolbar{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+.toolbar input,.toolbar select{padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--txt);}
+/* COZINHA */
+#cozinha-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:15px;}
+.order-card{background:var(--panel);border-left:5px solid var(--yellow);border-radius:10px;padding:14px;animation:pop .25s;}
+@keyframes pop{from{transform:scale(.9);opacity:0;}}
+.order-card.st-em-preparacao{border-left-color:var(--blue);}
+.order-card.st-pronto{border-left-color:var(--accent2);}
+.order-card.old{border-left-color:var(--red);}
+.order-card h4{font-size:15px;margin-bottom:8px;color:var(--accent);}
+.order-card ul{list-style:none;font-size:13px;color:var(--muted);}
+.order-card li{padding:3px 0;border-bottom:1px dashed var(--border);}
+.order-card .tempo{font-size:11px;color:var(--muted);margin-top:8px;}
+.status-chip{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;margin:8px 0;}
+.status-chip.pendente{background:#4a3a10;color:var(--yellow);}
+.status-chip.em-preparacao{background:#12294d;color:#7db3ff;}
+.status-chip.pronto{background:#0d3320;color:var(--accent2);}
+.status-chip.entregue{background:#3a2a4d;color:#cfa8ff;}
+.order-card button{margin-top:8px;width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--txt);padding:8px;border-radius:8px;cursor:pointer;}
+.empty{color:var(--muted);text-align:center;margin-top:40px;}
+/* CARDS/TABELAS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:15px 0;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.stat .v{font-size:24px;font-weight:800;color:var(--accent);}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
+th,td{padding:9px;border-bottom:1px solid var(--border);text-align:left;}
+th{color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:1px;}
+td input,td select{padding:5px;border-radius:6px;border:1px solid var(--border);background:var(--panel2);color:var(--txt);}
+td input[type=number]{width:64px;text-align:center;}
+td input[type=checkbox]{width:16px;height:16px;}
+.low{color:var(--red);font-weight:700;}
+.estornado{color:var(--red);text-decoration:line-through;}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--red);color:#fff;}
+.super-badge{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--purple);color:#fff;}
+.avatar{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--panel2);border:1px solid var(--border);font-size:16px;margin-right:8px;vertical-align:middle;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.perf-Gestor{color:var(--blue);} .perf-Supervisor{color:var(--yellow);} .perf-Caixa{color:var(--accent2);}
+.perf-Barman{color:var(--purple);} .perf-Servente{color:var(--muted);}
+.caixa-status{display:inline-block;padding:6px 16px;border-radius:20px;font-weight:800;font-size:13px;}
+.caixa-status.on{background:var(--accent2);color:#06230f;}
+.caixa-status.off{background:var(--red);color:#fff;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:10;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px;width:400px;max-height:90vh;overflow:auto;}
+.modal h3{margin-bottom:14px;color:var(--accent);}
+.modal label{font-size:13px;color:var(--muted);display:block;margin:10px 0 4px;}
+.modal select,.modal input,.modal textarea{width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--txt);}
+.troco{font-size:13px;margin-top:10px;color:var(--accent2);font-weight:700;}
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:10px;}
+.perm-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+.test-ok{color:var(--accent2);}
+.test-fail{color:var(--red);}
+.test-item{padding:6px 10px;border-bottom:1px solid var(--border);font-size:13px;}
+.pager{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;color:var(--muted);}
+.pager button{background:var(--panel2);border:1px solid var(--border);color:var(--txt);padding:5px 12px;border-radius:6px;cursor:pointer;}
+#login-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px;margin-top:14px;max-height:52vh;overflow:auto;padding:4px}
+.user-card{background:var(--panel2);border:2px solid var(--border);border-radius:14px;padding:16px 10px;text-align:center;cursor:pointer;transition:.15s;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.user-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.user-card.bloqueado{opacity:.55;cursor:not-allowed;border-color:var(--red)}
+.user-avatar{width:64px;height:64px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;margin-bottom:8px}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+.user-nome{font-weight:700;font-size:14px}
+.user-perfil{font-size:11px;color:var(--muted);margin-top:4px}
+#cod-dots{font-size:26px;letter-spacing:10px;margin:16px 0 6px;min-height:36px;color:var(--accent)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.keypad button{padding:15px;font-size:20px;font-weight:700;border-radius:10px;background:var(--panel2);color:var(--txt);border:1px solid var(--border);cursor:pointer}
+.keypad button:hover{background:#2a3650;border-color:var(--accent)}
+#fatura-print{display:none;}
+@media print{body>*{display:none !important;}#fatura-print{display:block !important;color:#000;font-size:12px;padding:10px;}#fatura-print h2{font-size:16px;}#fatura-print table{width:100%;font-size:11px;}}
+@media(max-width:900px){.pedido-wrap{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box" id="login-sel" style="width:660px;max-width:94vw">
+    <h1>🍽️ PDV-WD</h1>
+    <p>Toque no seu nome para entrar</p>
+    <input id="lg-busca" placeholder="🔍 Buscar funcionário..." oninput="renderLoginGrid()" style="text-align:left;margin-top:10px" autocomplete="off">
+    <div id="login-grid"></div>
+    <p style="margin-top:12px;font-size:11px;color:var(--muted)"><a href="#" onclick="toggleClassico();return false" style="color:var(--muted)">Acesso clássico (usuário + senha/PIN)</a> — contingência definida pelo administrador</p>
+  </div>
+  <div class="login-box" id="login-code" style="display:none">
+    <div class="user-avatar" id="cod-avatar" style="width:84px;height:84px;font-size:36px;margin:0 auto"></div>
+    <h1 id="cod-nome" style="font-size:19px;margin-top:12px"></h1>
+    <p id="cod-perfil" style="font-size:12px"></p>
+    <div id="cod-dots">•</div>
+    <div class="keypad">
+      <button onclick="tecla('1')">1</button><button onclick="tecla('2')">2</button><button onclick="tecla('3')">3</button>
+      <button onclick="tecla('4')">4</button><button onclick="tecla('5')">5</button><button onclick="tecla('6')">6</button>
+      <button onclick="tecla('7')">7</button><button onclick="tecla('8')">8</button><button onclick="tecla('9')">9</button>
+      <button onclick="tecla('C')">C</button><button onclick="tecla('0')">0</button><button onclick="tecla('⌫')">⌫</button>
+    </div>
+    <div class="login-err" id="cod-err"></div>
+    <button class="enter" onclick="entrarCodigo()">Entrar</button>
+    <button class="btn-voltar" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;cursor:pointer" onclick="voltarSelecao()">← Voltar</button>
+  </div>
+  <div class="login-box" id="login-classico" style="display:none">
+    <h1>🍽️ PDV-WD</h1>
+    <p>Sistema de Gestão para Restauração</p>
+    <div class="login-tabs">
+      <button id="tab-senha" class="active" onclick="loginTab('senha')">🔑 Senha</button>
+      <button id="tab-pin" onclick="loginTab('pin')">⚡ PIN rápido</button>
+    </div>
+    <div id="panel-senha">
+      <label>Utilizador</label><input id="lg-user" style="text-align:left" autocomplete="off">
+      <label id="lg-pass-label">Palavra-passe</label><input id="lg-pass" type="password" style="text-align:left" autocomplete="off">
+      <div class="login-err" id="lg-err"></div>
+      <button class="enter" onclick="fazerLogin()">Entrar</button>
+    </div>
+    <div id="panel-pin" style="display:none">
+      <label>Funcionário (balcão)</label><select id="lg-pin-user"></select>
+      <label>PIN (4–6 dígitos)</label><input id="lg-pin" class="pin-input" maxlength="6" inputmode="numeric">
+      <div class="login-err" id="lg-pin-err"></div>
+      <button class="enter" onclick="loginPin()">Entrar com PIN</button>
+    </div>
+    <div class="login-hint">
+      <b>Admin:</b> superadmin@pdvwd.local + <b>código de acesso</b> (sem senha) · <b>Senha:</b> gestor/gestor123 · supervisor/supervisor123 · caixa/caixa123 · barman/barman123 · servente/servente123<br>
+      <b>PIN:</b> caixa=1111 · barman=2222 · servente=3333 · gestor=4444 · supervisor=5555
+    </div>
+  </div>
+</div>
+  <!-- TROCA RÁPIDA DE USUÁRIO -->
+<div class="modal-bg" id="modal-switch">
+  <div class="modal" style="text-align:center">
+    <h3>🔀 Alternar usuário (PIN)</h3>
+    <label>Funcionário</label><select id="sw-user"></select>
+    <label>PIN</label><input id="sw-pin" class="pin-input" maxlength="6" inputmode="numeric">
+    <div class="login-err" id="sw-err"></div>
+    <button class="btn btn-blue btn-block" onclick="trocarUsuario()">Alternar</button>
+    <button class="btn btn-red btn-block" onclick="document.getElementById('modal-switch').classList.remove('on')">Cancelar</button>
+  </div>
+</div>
+
+<header style="display:none" id="app-header">
+  <h1>🍽️ PDV-WD</h1>
+  <span class="userinfo" id="userinfo"></span>
+  <button id="btn-switch" onclick="abrirTroca()">🔀 Alternar</button>
+  <button id="btn-logout" onclick="fazerLogout()">Sair</button>
+  <nav id="main-nav">
+    <button class="tab active" data-v="v-front">FrontOffice</button>
+    <button class="tab" data-v="v-cozinha" data-perm="cozinha.manage">Cozinha/Bar</button>
+    <button class="tab" data-v="v-zonas" data-perm="zonas.manage">Zonas</button>
+    <button class="tab" data-v="v-caixa" data-perm="caixa.open">Caixa</button>
+    <button class="tab" data-v="v-back" data-perm="relatorios.ver">Backoffice</button>
+    <button class="tab" data-v="v-func" data-perm="users.manage">Funcionários</button>
+    <button class="tab" data-v="v-admin" data-perm="users.manage">Administração</button>
+  </nav>
+</header>
+<main style="display:none" id="app-main">
+  <section id="v-front" class="view on">
+    <div class="toolbar">
+      <button class="btn btn-blue" onclick="novoPedido('TAKE')">🥡 Novo Takeaway</button>
+      <button class="btn btn-blue" onclick="novoPedido('DEL')">🛵 Novo Delivery</button>
+    </div>
+    <div id="zonas"></div>
+    <div id="mesas"></div>
+    <div id="pedido-area" style="display:none;margin-top:25px;">
+      <h2 class="sec-title" id="pedido-title"></h2>
+      <div class="pedido-wrap">
+        <div><div class="prod-grid" id="prod-grid"></div></div>
+        <div class="cart">
+          <h3>🧾 Conta</h3>
+          <div id="cart-items"></div>
+          <div class="total" id="cart-total">€ 0.00</div>
+          <button class="btn btn-green btn-block" id="btn-enviar" disabled>Enviar p/ Cozinha + Comanda</button>
+          <button class="btn btn-green btn-block" id="btn-pagar" disabled>Pagar Conta</button>
+          <button class="btn btn-red btn-block" id="btn-cancelar">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="v-cozinha" class="view">
+    <h2 class="sec-title">Monitor de Cozinha/Bar — fluxo: pendente → em preparação → pronto → entregue</h2>
+    <div id="cozinha-grid"></div>
+    <p class="empty" id="cozinha-empty">Sem comandas em curso. ✅</p>
+  </section>
+  <section id="v-caixa" class="view">
+    <h2 class="sec-title">Gestão de Caixa</h2>
+    <p id="caixa-banner"></p>
+    <div class="cards">
+      <div class="stat"><div class="v" id="cx-fundo">€ 0.00</div><div class="l">Fundo de caixa</div></div>
+      <div class="stat"><div class="v" id="cx-vendas">€ 0.00</div><div class="l">Vendas em dinheiro</div></div>
+      <div class="stat"><div class="v" id="cx-movs">€ 0.00</div><div class="l">Sangrias (−) / Reforços (+)</div></div>
+      <div class="stat"><div class="v" id="cx-esperado">€ 0.00</div><div class="l">Esperado em gaveta</div></div>
+    </div>
+    <div class="toolbar" id="cx-actions"></div>
+    <table><thead><tr><th>Hora</th><th>Tipo</th><th>Valor</th><th>Motivo</th><th>Operador</th></tr></thead><tbody id="cx-body"></tbody></table>
+  </section>
+  <section id="v-back" class="view">
+    <h2 class="sec-title">Backoffice — PDV-WD Cloud</h2>
+    <div class="cards">
+      <div class="stat"><div class="v" id="st-fatur">€ 0.00</div><div class="l">Faturação do dia</div></div>
+      <div class="stat"><div class="v" id="st-mesas">0</div><div class="l">Mesas ocupadas</div></div>
+      <div class="stat"><div class="v" id="st-pedidos">0</div><div class="l">Pedidos servidos</div></div>
+      <div class="stat"><div class="v" id="st-ticket">€ 0.00</div><div class="l">Ticket médio</div></div>
+      <div class="stat"><div class="v" id="st-stocklow">0</div><div class="l">Stock baixo</div></div>
+    </div>
+    <h2 class="sec-title">Relatórios gerenciais</h2>
+    <div class="toolbar">
+      <label style="font-size:12px;color:var(--muted)">De</label><input type="date" id="rl-de">
+      <label style="font-size:12px;color:var(--muted)">Até</label><input type="date" id="rl-ate">
+      <select id="rl-tipo"><option value="periodo">Vendas por período</option><option value="operador">Vendas por operador</option><option value="produto">Vendas por produto</option><option value
